@@ -106,9 +106,9 @@ GateSourceTPSPencilBeam::GateSourceTPSPencilBeam(G4String name ):GateVSource( na
 GateSourceTPSPencilBeam::~GateSourceTPSPencilBeam() {
   delete pMessenger;  // commented due to segfault
   //FIXME segfault when uncommented
-//  delete mPencilBeam;
-//  delete mPDF;
-//  delete mDistriGeneral;
+  //  delete mPencilBeam;
+  //  delete mPDF;
+  //  delete mDistriGeneral;
 }
 //------------------------------------------------------------------------------------------------------
 void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
@@ -159,9 +159,9 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
       double TotalMeterSet = ParseNextContentLine<double,1>(inFile,lineno,mPlan)[0];
       int nrejected = 0; // number of spots rejected based on layer/spot selection configuration      
       if (mTestFlag) {
-            GateMessage( "Beam", 0, "TESTREAD NbFields " << NbFields << Gateendl );
-            GateMessage( "Beam", 0, "TESTREAD TotalMeterSet " << TotalMeterSet << Gateendl );
-         }      
+        GateMessage( "Beam", 0, "TESTREAD NbFields " << NbFields << Gateendl );
+        GateMessage( "Beam", 0, "TESTREAD TotalMeterSet " << TotalMeterSet << Gateendl );
+      }      
       for (int f = 0; f < NbFields; f++) {
         int FieldID = ParseNextContentLine<int,1>(inFile,lineno,mPlan)[0];
         double MeterSetWeight = ParseNextContentLine<double,1>(inFile,lineno,mPlan)[0];
@@ -170,13 +170,13 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
         double CouchAngle = deg2rad(ParseNextContentLine<double,1>(inFile,lineno,mPlan)[0]);
         std::vector<double> IsocenterPosition = ParseNextContentLine<double,3>(inFile,lineno,mPlan);
         int NbOfLayers = ParseNextContentLine<int,1>(inFile,lineno,mPlan)[0];
-		if (mTestFlag) {
-            GateMessage( "Beam", 0, "TESTREAD FieldID " << FieldID << Gateendl );
-            GateMessage( "Beam", 0, "TESTREAD GantryAngle " << GantryAngle << Gateendl );
-            GateMessage( "Beam", 0, "TESTREAD CouchAngle " << CouchAngle << Gateendl );
-            GateMessage( "Beam", 1, "TESTREAD IsocenterPosition " << IsocenterPosition[0] << " " << IsocenterPosition[1] << " " << IsocenterPosition[2] << Gateendl );
-            GateMessage( "Beam", 1, "TESTREAD NbOfLayers " << NbOfLayers << Gateendl );
-         }
+        if (mTestFlag) {
+          GateMessage( "Beam", 0, "TESTREAD FieldID " << FieldID << Gateendl );
+          GateMessage( "Beam", 0, "TESTREAD GantryAngle " << GantryAngle << Gateendl );
+          GateMessage( "Beam", 0, "TESTREAD CouchAngle " << CouchAngle << Gateendl );
+          GateMessage( "Beam", 1, "TESTREAD IsocenterPosition " << IsocenterPosition[0] << " " << IsocenterPosition[1] << " " << IsocenterPosition[2] << Gateendl );
+          GateMessage( "Beam", 1, "TESTREAD NbOfLayers " << NbOfLayers << Gateendl );
+        }
         for (int j = 0; j < NbOfLayers; j++) {
           int currentLayerID = ParseNextContentLine<int,1>(inFile,lineno,mPlan)[0];
           std::string dummy_spotID = ParseNextContentLine<std::string,1>(inFile,lineno,mPlan)[0];
@@ -193,9 +193,9 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
             std::vector<double> SpotParameters = ParseNextContentLine<double,3>(inFile,lineno,mPlan);
             if (mTestFlag) {
               GateMessage( "Beam", 1, "TESTREAD Spot No. " << k << " (for this layer)   parameters: "
-                                      << SpotParameters[0] << " "
-                                      << SpotParameters[1] << " "
-                                      << SpotParameters[2] << Gateendl);
+                           << SpotParameters[0] << " "
+                           << SpotParameters[1] << " "
+                           << SpotParameters[2] << Gateendl);
             }
 
             bool allowedField = true;
@@ -291,7 +291,7 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
       GateError("0 spots have been loaded from the file \"" << mPlan << "\" simulation abort!");
     }
     
-	 //PDF
+    //PDF
     mPDF = new double[mTotalNumberOfSpots];
 
     if (mFlatGenerationFlag) {
@@ -320,22 +320,22 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
       mCurrentSpot = 0;
     }
 
-  //Correlation Position/Direction
-  //this parameter is not spot or energy dependent and is therefore once for all at the end of the initialization phase.
-      if (mConvergentSourceXTheta) {
-    mPencilBeam->SetEllipseXThetaRotationNorm("positive");   // convergent beam    
-  	 } else {
+    //Correlation Position/Direction
+    //this parameter is not spot or energy dependent and is therefore once for all at the end of the initialization phase.
+    if (mConvergentSourceXTheta) {
+      mPencilBeam->SetEllipseXThetaRotationNorm("positive");   // convergent beam    
+    } else {
     	mPencilBeam->SetEllipseXThetaRotationNorm("negative");   // divergent beam
-  	   }
-  if (mConvergentSourceYPhi) {
-	 mPencilBeam->SetEllipseYPhiRotationNorm("positive"); // convergent beam
-  	 } else {  
-  	   mPencilBeam->SetEllipseYPhiRotationNorm("negative"); // divergent beam
-  		}
-	// pencil beam configuration
-   need_pencilbeam_config = true;
+    }
+    if (mConvergentSourceYPhi) {
+      mPencilBeam->SetEllipseYPhiRotationNorm("positive"); // convergent beam
+    } else {  
+      mPencilBeam->SetEllipseYPhiRotationNorm("negative"); // divergent beam
+    }
+    // pencil beam configuration
+    need_pencilbeam_config = true;
    
-   GateMessage("Beam", 0, "[TPSPencilBeam] Plan description file \"" << mPlan << "\" successfully loaded."<< Gateendl );
+    GateMessage("Beam", 0, "[TPSPencilBeam] Plan description file \"" << mPlan << "\" successfully loaded."<< Gateendl );
   }
   //---------INITIALIZATION - END-----------------------
 
@@ -371,8 +371,8 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
 //------------------------------------------------------------------------------------------------------
 void GateSourceTPSPencilBeam::ConfigurePencilBeam() {
   double energy = mSpotEnergy[mCurrentSpot];
-    //Particle Type
-    mPencilBeam->SetParticleType(mParticleType);
+  //Particle Type
+  mPencilBeam->SetParticleType(mParticleType);
   if (mIsGenericIon==true){
     //Particle Properties If GenericIon
     mPencilBeam->SetIonParameter(mParticleParameters);
@@ -443,8 +443,8 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties() {
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mEnergy.push_back(PolOrder);
   for (int i=0; i<=PolOrder; i++) {
-      MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-      mEnergy.push_back(MyVal);
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mEnergy.push_back(MyVal);
   }
   for (int i=0; i<4; i++) std::getline(inFile,oneline);
   // Energy Spread
@@ -468,53 +468,53 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties() {
   //X
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mX.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mX.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mX.push_back(MyVal);
+  }
   //Theta
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mTheta.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mTheta.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mTheta.push_back(MyVal);
+  }
   //Y
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mY.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mY.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mY.push_back(MyVal);
+  }
   //Phi
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mPhi.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mPhi.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mPhi.push_back(MyVal);
+  }
   //XThetaEmittance
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mXThetaEmittance.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mXThetaEmittance.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mXThetaEmittance.push_back(MyVal);
+  }
   //YPhiEmittance
   PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
   mYPhiEmittance.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mYPhiEmittance.push_back(MyVal);
-    }
+  for (int i=0; i<=PolOrder; i++) {
+    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mYPhiEmittance.push_back(MyVal);
+  }
     
   if(!mSpotIntensityAsNbIons){
-  //MonitorCalibration
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mMonitorCalibration.push_back(PolOrder);
+    //MonitorCalibration
+    PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
+    mMonitorCalibration.push_back(PolOrder);
     for (int i=0; i<=PolOrder; i++) {
-        MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-        mMonitorCalibration.push_back(MyVal);
+      MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
+      mMonitorCalibration.push_back(MyVal);
     }
   }
   //TestFlag
