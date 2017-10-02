@@ -532,7 +532,7 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties()
     PolOrder = j.at("spot_emittance_x_theta_polynomial_order");
     mXThetaEmittance.push_back(PolOrder);
     for (int i=0; i<=PolOrder; i++) {
-      MyVal= j .at("spot_emittance_x_theta_polynomial_parameters")[i];
+      MyVal= j.at("spot_emittance_x_theta_polynomial_parameters")[i];
       mXThetaEmittance.push_back(MyVal);
     }
 
@@ -554,7 +554,7 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties()
       }
     }
 
-  } /// if the json as trouble when reading, this error is displayed
+  } /// if the json has trouble when reading, this error is displayed
   catch(json::exception e){
     GateError("Error while reading json file '" << mSourceDescriptionFile
               << "'.  The error is: " << e.what());
