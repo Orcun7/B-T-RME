@@ -14,19 +14,14 @@
 // It will simulate each single pencil beam of the treatment plan using the GateSourcePencilBeam class.
 //=======================================================
 
+// Gate
 #include "GateConfiguration.h"
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <iomanip>
-#include <iterator>
-#include <exception>
-#include <sstream>
 #include "GateSourceTPSPencilBeam.hh"
-#include "G4Proton.hh"
-#include "GateMiscFunctions.hh"
 #include "GateApplicationMgr.hh"
+
+// json
+#include "json.hpp"
+using json = nlohmann::json;
 
 //------------------------------------------------------------------------------------------------------
 //  try get N values of type T from a given input line
@@ -118,7 +113,7 @@ GateSourceTPSPencilBeam::GateSourceTPSPencilBeam(G4String name )
 //------------------------------------------------------------------------------------------------------
 GateSourceTPSPencilBeam::~GateSourceTPSPencilBeam()
 {
-  delete pMessenger;  // commented due to segfault
+  // delete pMessenger;  // commented due to segfault
   //FIXME segfault when uncommented
   //  delete mPencilBeam;
   //  delete mPDF;
@@ -448,98 +443,123 @@ void GateSourceTPSPencilBeam::ConfigurePencilBeam()
 //------------------------------------------------------------------------------------------------------
 void GateSourceTPSPencilBeam::LoadClinicalBeamProperties()
 {
-
   std::string oneline;
   int PolOrder;
-  int lineno=0;
+  // int lineno=0;
   double MyVal;
 
+  // Read file and set the json structure
   std::ifstream inFile(mSourceDescriptionFile);
   if (! inFile) {
     GateError("Cannot open source description file!");
   }
-  // DSP, SMX, SMY
-  mDistanceSourcePatient=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mDistanceSMXToIsocenter=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mDistanceSMYToIsocenter=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  //Energy
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mEnergy.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mEnergy.push_back(MyVal);
-  }
-  for (int i=0; i<4; i++) std::getline(inFile,oneline);
-  // Energy Spread
-  if (oneline == "MeV"){
-    mSigmaEnergyInMeVFlag = true;
-    GateMessage("Beam",0,"source description file specifies energy spread in MeV" << Gateendl);
-    GateMessage("Beam",0,"(This overrides whatever you configured for the 'setSigmaEnergyInMeVFlag' in the configuration of TPSPencilBeam.)" << Gateendl);
-    std::getline(inFile,oneline);
-  } else if ( (oneline == "PERCENT") || (oneline == "percent") || (oneline == "%") ){
-    mSigmaEnergyInMeVFlag = false;
-    GateMessage("Beam",0,"source description file specifies energy spread in PERCENT (%)" << Gateendl);
-    GateMessage("Beam",0,"(This overrides whatever you configured for the 'setSigmaEnergyInMeVFlag' in the configuration of TPSPencilBeam.)" << Gateendl);
-    std::getline(inFile,oneline);
-  }
-  PolOrder=atoi(oneline.c_str());
-  mEnergySpread.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mEnergySpread.push_back(MyVal);
-  }
-  //X
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mX.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mX.push_back(MyVal);
-  }
-  //Theta
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mTheta.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mTheta.push_back(MyVal);
-  }
-  //Y
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mY.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mY.push_back(MyVal);
-  }
-  //Phi
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mPhi.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mPhi.push_back(MyVal);
-  }
-  //XThetaEmittance
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mXThetaEmittance.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mXThetaEmittance.push_back(MyVal);
-  }
-  //YPhiEmittance
-  PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-  mYPhiEmittance.push_back(PolOrder);
-  for (int i=0; i<=PolOrder; i++) {
-    MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mYPhiEmittance.push_back(MyVal);
+  json j;
+  inFile >> j;
+
+  // Read the json structure
+  try {
+
+    // DSP, SMX, SMY
+    mDistanceSourcePatient  = j.at("nozzle_exit_to_isocenter_distance_in_mm");
+    mDistanceSMXToIsocenter = j.at("smx_to_isocenter_distance_in_mm");
+    mDistanceSMYToIsocenter = j.at("smy_to_isocenter_distance_in_mm");
+
+    //Energy mean
+    PolOrder = j.at("energy_mean_polynomial_order");
+    mEnergy.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("energy_mean_polynomial_parameters")[i];
+      mEnergy.push_back(MyVal);
+    }
+
+    // Energy Spread
+    std::string type = j.at("energy_spread_polynomial_type");
+    if (type == "MeV") {
+      mSigmaEnergyInMeVFlag = true;
+      GateMessage("Beam",0,"source description file specifies energy spread in MeV" << Gateendl);
+      GateMessage("Beam",0,"(This overrides whatever you configured for the 'setSigmaEnergyInMeVFlag' in the configuration of TPSPencilBeam.)" << Gateendl);
+    }
+    else {
+      if (type == "percent" or type == "PERCENT" or type == "%") {
+        mSigmaEnergyInMeVFlag = false;
+        GateMessage("Beam",0,"source description file specifies energy spread in PERCENT (%)" << Gateendl);
+        GateMessage("Beam",0,"(This overrides whatever you configured for the 'setSigmaEnergyInMeVFlag' in the configuration of TPSPencilBeam.)" << Gateendl);
+      }
+      else {
+        GateError("Error energy_spread_polynomial_type *must* by 'MeV' or 'percent'.");
+      }
+    }
+    PolOrder = j.at("energy_spread_polynomial_order");
+    mEnergySpread.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("energy_mean_polynomial_parameters")[i];
+      mEnergySpread.push_back(MyVal);
+    }
+
+    // Spot X
+    PolOrder = j.at("spot_x_polynomial_order");
+    mX.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("spot_x_polynomial_parameters")[i];
+      mX.push_back(MyVal);
+    }
+
+    // Spot Y
+    PolOrder = j.at("spot_y_polynomial_order");
+    mY.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("spot_y_polynomial_parameters")[i];
+      mY.push_back(MyVal);
+    }
+
+    // Spot THETA
+    PolOrder = j.at("spot_theta_polynomial_order");
+    mTheta.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("spot_theta_polynomial_parameters")[i];
+      mTheta.push_back(MyVal);
+    }
+
+    // Spot Phi
+    PolOrder = j.at("spot_phi_polynomial_order");
+    mPhi.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("spot_phi_polynomial_parameters")[i];
+      mPhi.push_back(MyVal);
+    }
+
+    //XThetaEmittance
+    PolOrder = j.at("spot_emittance_x_theta_polynomial_order");
+    mXThetaEmittance.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal= j .at("spot_emittance_x_theta_polynomial_parameters")[i];
+      mXThetaEmittance.push_back(MyVal);
+    }
+
+    //YPhiEmittance
+    PolOrder = j.at("spot_emittance_y_phi_polynomial_order");
+    mYPhiEmittance.push_back(PolOrder);
+    for (int i=0; i<=PolOrder; i++) {
+      MyVal = j.at("spot_emittance_y_phi_polynomial_parameters")[i];
+      mYPhiEmittance.push_back(MyVal);
+    }
+
+    //MonitorCalibration
+    if (!mSpotIntensityAsNbIons){
+      PolOrder = j.at("spot_monitor_calibration_polynomial_order");
+      mMonitorCalibration.push_back(PolOrder);
+      for (int i=0; i<=PolOrder; i++) {
+        MyVal = j.at("spot_monitor_calibration_polynomial_parameters")[i];
+        mMonitorCalibration.push_back(MyVal);
+      }
+    }
+
+  } /// if the json as trouble when reading, this error is displayed
+  catch(json::exception e){
+    GateError("Error while reading json file '" << mSourceDescriptionFile
+              << "'.  The error is: " << e.what());
   }
 
-  if(!mSpotIntensityAsNbIons){
-    //MonitorCalibration
-    PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
-    mMonitorCalibration.push_back(PolOrder);
-    for (int i=0; i<=PolOrder; i++) {
-      MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
-      mMonitorCalibration.push_back(MyVal);
-    }
-  }
   //TestFlag
   if (mTestFlag) {
     GateMessage("Beam",0,"TESTREAD DSP "<<mDistanceSourcePatient<< Gateendl);
