@@ -33,7 +33,8 @@
 // * throw exception with informative error message in case of trouble.
 // * NOTE that while this catches some common errors, it is not yet fool proof.
 template<typename T, int N>
-typename std::vector<T> parse_N_values_of_type_T(std::string line,int lineno, const std::string& fname){
+typename std::vector<T> parse_N_values_of_type_T(std::string line,int lineno, const std::string& fname)
+{
   GateMessage("Beam", 5, "[TPSPencilBeam] trying to parse line " << lineno << " from file " << fname << Gateendl );
   std::istringstream iss(line);
   typename std::istream_iterator<T> iss_end;
@@ -50,11 +51,15 @@ typename std::vector<T> parse_N_values_of_type_T(std::string line,int lineno, co
   return vecT;
 }
 //------------------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------------------
 // Function to read the next content line
 // * skip all comment lines (lines string with a '#')
 // * skip empty
 // * throw exception with informative error message in case of missing data
-std::string ReadNextContentLine( std::istream& input, int& lineno, const std::string& fname ) {
+std::string ReadNextContentLine( std::istream& input, int& lineno, const std::string& fname )
+{
   while ( input ){
     std::string line;
     std::getline(input,line);
@@ -66,6 +71,9 @@ std::string ReadNextContentLine( std::istream& input, int& lineno, const std::st
   throw std::runtime_error(std::string("reached end of file '")+fname+std::string("' unexpectedly."));
 }
 //------------------------------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------------------------------
 // Function to read AND parse the next content line
 // * check that we really get N values of type T from the current line
 template<typename T, int N>
@@ -75,8 +83,10 @@ typename std::vector<T>  ParseNextContentLine( std::istream& input, int& lineno,
 }
 //------------------------------------------------------------------------------------------------------
 
+
 //------------------------------------------------------------------------------------------------------
-GateSourceTPSPencilBeam::GateSourceTPSPencilBeam(G4String name ):GateVSource( name ), mPencilBeam(NULL), mDistriGeneral(NULL)
+GateSourceTPSPencilBeam::GateSourceTPSPencilBeam(G4String name )
+  :GateVSource( name ), mPencilBeam(NULL), mDistriGeneral(NULL)
 {
   //Particle Type
   strcpy(mParticleType,"proton");
@@ -103,7 +113,11 @@ GateSourceTPSPencilBeam::GateSourceTPSPencilBeam(G4String name ):GateVSource( na
   mTotalNbIons = 0.;
 }
 //------------------------------------------------------------------------------------------------------
-GateSourceTPSPencilBeam::~GateSourceTPSPencilBeam() {
+
+
+//------------------------------------------------------------------------------------------------------
+GateSourceTPSPencilBeam::~GateSourceTPSPencilBeam()
+{
   delete pMessenger;  // commented due to segfault
   //FIXME segfault when uncommented
   //  delete mPencilBeam;
@@ -111,7 +125,11 @@ GateSourceTPSPencilBeam::~GateSourceTPSPencilBeam() {
   //  delete mDistriGeneral;
 }
 //------------------------------------------------------------------------------------------------------
-void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
+
+
+//------------------------------------------------------------------------------------------------------
+void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent )
+{
   bool need_pencilbeam_config = false;
   if (!mIsInitialized) {
     GateMessage("Beam", 1, "[TPSPencilBeam] Starting..." << Gateendl );
@@ -157,11 +175,11 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
         GateMessage("Beam",4,"Field ID " << dummy_fieldID << Gateendl );
       }
       double TotalMeterSet = ParseNextContentLine<double,1>(inFile,lineno,mPlan)[0];
-      int nrejected = 0; // number of spots rejected based on layer/spot selection configuration      
+      int nrejected = 0; // number of spots rejected based on layer/spot selection configuration
       if (mTestFlag) {
         GateMessage( "Beam", 0, "TESTREAD NbFields " << NbFields << Gateendl );
         GateMessage( "Beam", 0, "TESTREAD TotalMeterSet " << TotalMeterSet << Gateendl );
-      }      
+      }
       for (int f = 0; f < NbFields; f++) {
         int FieldID = ParseNextContentLine<int,1>(inFile,lineno,mPlan)[0];
         double MeterSetWeight = ParseNextContentLine<double,1>(inFile,lineno,mPlan)[0];
@@ -290,7 +308,7 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
     if (mTotalNumberOfSpots == 0) {
       GateError("0 spots have been loaded from the file \"" << mPlan << "\" simulation abort!");
     }
-    
+
     //PDF
     mPDF = new double[mTotalNumberOfSpots];
 
@@ -299,7 +317,7 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
     }
 
     for (int i = 0; i < mTotalNumberOfSpots; i++) {
-      // it is strongly adviced to set mFlatGenerationFlag=false for efficiency 
+      // it is strongly adviced to set mFlatGenerationFlag=false for efficiency
       if (mFlatGenerationFlag) {
         mPDF[i] = 1;
       } else {
@@ -323,18 +341,18 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
     //Correlation Position/Direction
     //this parameter is not spot or energy dependent and is therefore once for all at the end of the initialization phase.
     if (mConvergentSourceXTheta) {
-      mPencilBeam->SetEllipseXThetaRotationNorm("positive");   // convergent beam    
+      mPencilBeam->SetEllipseXThetaRotationNorm("positive");   // convergent beam
     } else {
     	mPencilBeam->SetEllipseXThetaRotationNorm("negative");   // divergent beam
     }
     if (mConvergentSourceYPhi) {
       mPencilBeam->SetEllipseYPhiRotationNorm("positive"); // convergent beam
-    } else {  
+    } else {
       mPencilBeam->SetEllipseYPhiRotationNorm("negative"); // divergent beam
     }
     // pencil beam configuration
     need_pencilbeam_config = true;
-   
+
     GateMessage("Beam", 0, "[TPSPencilBeam] Plan description file \"" << mPlan << "\" successfully loaded."<< Gateendl );
   }
   //---------INITIALIZATION - END-----------------------
@@ -367,9 +385,11 @@ void GateSourceTPSPencilBeam::GenerateVertex( G4Event *aEvent ) {
   }
 }
 //---------GENERATION - END-----------------------
+//------------------------------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------------------------------
-void GateSourceTPSPencilBeam::ConfigurePencilBeam() {
+void GateSourceTPSPencilBeam::ConfigurePencilBeam()
+{
   double energy = mSpotEnergy[mCurrentSpot];
   //Particle Type
   mPencilBeam->SetParticleType(mParticleType);
@@ -422,9 +442,12 @@ void GateSourceTPSPencilBeam::ConfigurePencilBeam() {
     GateMessage("Beam", 0, "SetEllipseYPhiArea\t" << GetEllipseYPhiArea(energy) << Gateendl);
   }
 }
+//------------------------------------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------------------------------
-void GateSourceTPSPencilBeam::LoadClinicalBeamProperties() {
+void GateSourceTPSPencilBeam::LoadClinicalBeamProperties()
+{
 
   std::string oneline;
   int PolOrder;
@@ -507,7 +530,7 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties() {
     MyVal=ParseNextContentLine<double,1>(inFile,lineno,mSourceDescriptionFile)[0];
     mYPhiEmittance.push_back(MyVal);
   }
-    
+
   if(!mSpotIntensityAsNbIons){
     //MonitorCalibration
     PolOrder=ParseNextContentLine<int,1>(inFile,lineno,mSourceDescriptionFile)[0];
@@ -533,9 +556,12 @@ void GateSourceTPSPencilBeam::LoadClinicalBeamProperties() {
     for (unsigned int i=0; i<mMonitorCalibration.size(); i++) GateMessage("Beam",0,"TESTREAD mMonitorCalibration\t"<<mMonitorCalibration[i]<< Gateendl);
   }
 }
+//------------------------------------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetEnergy(double energy) {
+double GateSourceTPSPencilBeam::GetEnergy(double energy)
+{
   double val=0;
   for (int i=0; i<=mEnergy[0]; i++) {
     val+=mEnergy[i+1]*pow(energy,mEnergy[0]-i);
@@ -543,7 +569,11 @@ double GateSourceTPSPencilBeam::GetEnergy(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetSigmaEnergy(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetSigmaEnergy(double energy)
+{
   double val=0;
   for (int i=0; i<=mEnergySpread[0]; i++) {
     val+=mEnergySpread[i+1]*pow(energy,mEnergySpread[0]-i);
@@ -551,7 +581,11 @@ double GateSourceTPSPencilBeam::GetSigmaEnergy(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetSigmaX(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetSigmaX(double energy)
+{
   double val=0;
   for (int i=0; i<=mX[0]; i++) {
     val+=mX[i+1]*pow(energy,mX[0]-i);
@@ -559,7 +593,11 @@ double GateSourceTPSPencilBeam::GetSigmaX(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetSigmaY(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetSigmaY(double energy)
+{
   double val=0;
   for (int i=0; i<=mY[0]; i++) {
     val+=mY[i+1]*pow(energy,mY[0]-i);
@@ -567,13 +605,20 @@ double GateSourceTPSPencilBeam::GetSigmaY(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetSigmaTheta(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetSigmaTheta(double energy)
+{
   double val=0;
   for (int i=0; i<=mTheta[0]; i++) {
     val+=mTheta[i+1]*pow(energy,mTheta[0]-i);
   }
   return val;
 }
+//------------------------------------------------------------------------------------------------------
+
+
 //------------------------------------------------------------------------------------------------------
 double GateSourceTPSPencilBeam::GetSigmaPhi(double energy) {
   double val=0;
@@ -583,7 +628,11 @@ double GateSourceTPSPencilBeam::GetSigmaPhi(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetEllipseXThetaArea(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetEllipseXThetaArea(double energy)
+{
   double val=0;
   for (int i=0; i<=mXThetaEmittance[0]; i++) {
     val+=mXThetaEmittance[i+1]*pow(energy,mXThetaEmittance[0]-i);
@@ -591,7 +640,11 @@ double GateSourceTPSPencilBeam::GetEllipseXThetaArea(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetEllipseYPhiArea(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetEllipseYPhiArea(double energy)
+{
   double val=0;
   for (int i=0; i<=mYPhiEmittance[0]; i++) {
     val+=mYPhiEmittance[i+1]*pow(energy,mYPhiEmittance[0]-i);
@@ -599,7 +652,11 @@ double GateSourceTPSPencilBeam::GetEllipseYPhiArea(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-double GateSourceTPSPencilBeam::GetMonitorCalibration(double energy) {
+
+
+//------------------------------------------------------------------------------------------------------
+double GateSourceTPSPencilBeam::GetMonitorCalibration(double energy)
+{
   double val=0;
   for (int i=0; i<=mMonitorCalibration[0]; i++) {
     val+=mMonitorCalibration[i+1]*pow(energy,mMonitorCalibration[0]-i);
@@ -607,7 +664,11 @@ double GateSourceTPSPencilBeam::GetMonitorCalibration(double energy) {
   return val;
 }
 //------------------------------------------------------------------------------------------------------
-G4int GateSourceTPSPencilBeam::GeneratePrimaries( G4Event* event ) {
+
+
+//------------------------------------------------------------------------------------------------------
+G4int GateSourceTPSPencilBeam::GeneratePrimaries( G4Event* event )
+{
   GateMessage("Beam", 4, "GeneratePrimaries " << event->GetEventID() << Gateendl);
   G4int numVertices = 0;
   GenerateVertex( event );
@@ -615,7 +676,11 @@ G4int GateSourceTPSPencilBeam::GeneratePrimaries( G4Event* event ) {
   return numVertices;
 }
 //------------------------------------------------------------------------------------------------------
-void ReadLineTo3Doubles(double *toto, const std::string &data) {
+
+
+//------------------------------------------------------------------------------------------------------
+void ReadLineTo3Doubles(double *toto, const std::string &data)
+{
   std::istringstream iss(data);
   std::string token;
   for (int j=0; j<3; j++) {
@@ -624,3 +689,4 @@ void ReadLineTo3Doubles(double *toto, const std::string &data) {
   }
 }
 // vim: ai sw=2 ts=2 et
+//------------------------------------------------------------------------------------------------------
